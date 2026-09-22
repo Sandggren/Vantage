@@ -1,0 +1,244 @@
+import streamlit as st
+import folium
+from streamlit_folium import st_folium
+import requests
+
+
+# =========================================================
+# PAGE
+# =========================================================
+
+st.set_page_config(
+    page_title="Gothenburg Traffic Safety",
+    page_icon="🚦",
+    layout="wide"
+)
+
+st.title("Gothenburg Traffic Safety 🚦")
+
+st.write(
+    "Explore vehicle and bicycle traffic flows in Gothenburg."
+)
+
+
+# =========================================================
+# CREATE MAP
+# =========================================================
+
+gothenburg_map = folium.Map(
+    location=[57.7089, 11.9746],
+    zoom_start=12
+)
+
+
+# =========================================================
+# 🚗 VEHICLE TRAFFIC FLOW
+# Source: Trafikverket
+# =========================================================
+
+vehicle_layer = folium.FeatureGroup(
+    name="🚗 Vehicle traffic flow"
+)
+
+url = (
+    "https://vektor.trafikverket.se/gis/rest/services/"
+    "VTF_MC/Vagtrafikfloden_Mc_gradient/MapServer/9/query"
+)
+
+params = {
+    "where": "1=1",
+    "outFields": "AADT_TOT,VAEG_NUM,AAR",
+    "geometry": "11.80,57.60,12.10,57.80",
+    "geometryType": "esriGeometryEnvelope",
+    "inSR": "4326",
+    "outSR": "4326",
+    "spatialRel": "esriSpatialRelIntersects",
+    "returnGeometry": "true",
+    "f": "geojson"
+}
+
+try:
+
+    response = requests.get(
+        url,
+        params=params,
+        timeout=10
+    )
+
+    response.raise_for_status()
+    traffic_data = response.json()
+
+    folium.GeoJson(
+        traffic_data,
+
+        tooltip=folium.GeoJsonTooltip(
+            fields=[
+                "AADT_TOT",
+                "VAEG_NUM",
+                "AAR"
+            ],
+
+            aliases=[
+                "Average vehicles/day:",
+                "Road:",
+                "Measurement year:"
+            ]
+        )
+
+    ).add_to(vehicle_layer)
+
+    vehicle_layer.add_to(gothenburg_map)
+
+except Exception as e:
+
+    st.warning("Vehicle traffic data could not be loaded.")
+    st.write(e)
+
+
+# =========================================================
+# 🚲 BICYCLE TRAFFIC FLOW
+# Source: Göteborgs Stad
+#
+# Published bicycle traffic measurements.
+# Values = average bicycles per weekday.
+# =========================================================
+
+bike_data = [
+
+    {
+        "name": "Ullevigatan",
+        "lat": 57.7065,
+        "lon": 11.9860,
+        "flow": 3200,
+        "year": 2022
+    },
+
+    {
+        "name": "Redbergsvägen",
+        "lat": 57.7160,
+        "lon": 12.0040,
+        "flow": 2800,
+        "year": 2022
+    },
+
+    {
+        "name": "Nya Allén",
+        "lat": 57.7035,
+        "lon": 11.9660,
+        "flow": 2400,
+        "year": 2022
+    },
+
+    {
+        "name": "Delsjövägen",
+        "lat": 57.6950,
+        "lon": 12.0140,
+        "flow": 2400,
+        "year": 2022
+    }
+
+]
+
+
+bike_layer = folium.FeatureGroup(
+    name="🚲 Bicycle traffic flow"
+)
+
+
+for station in bike_data:
+
+    # Bigger circle = more bicycle traffic
+    radius = station["flow"] / 300
+
+    folium.CircleMarker(
+
+        location=[
+            station["lat"],
+            station["lon"]
+        ],
+
+        radius=radius,
+
+        tooltip=(
+            f"{station['name']} – "
+            f"{station['flow']} bicycles/day"
+        ),
+
+        popup=(
+            f"<b>🚲 {station['name']}</b><br><br>"
+            f"<b>Bicycle traffic flow:</b> "
+            f"{station['flow']} bicycles/weekday<br>"
+            f"<b>Measurement year:</b> "
+            f"{station['year']}<br><br>"
+            f"Source: Göteborgs Stad"
+        ),
+
+        fill=True,
+        fill_opacity=0.7
+
+    ).add_to(bike_layer)
+
+
+bike_layer.add_to(gothenburg_map)
+
+
+# =========================================================
+# MAP CONTROLS
+# =========================================================
+
+folium.LayerControl(
+    collapsed=False
+).add_to(gothenburg_map)
+
+
+# =========================================================
+# SHOW MAP
+# =========================================================
+
+st.subheader("Traffic Flow Map")
+
+st.write(
+    "Select the layers on the map to compare vehicle "
+    "and bicycle traffic flows."
+)
+
+st_folium(
+    gothenburg_map,
+    width=1200,
+    height=650
+)
+
+
+# =========================================================
+# EXPLANATION
+# =========================================================
+
+st.subheader("What does the map show?")
+
+st.markdown(
+    """
+### 🚗 Vehicle traffic flow
+
+Shows the average number of motor vehicles using different
+road sections.
+
+**Source:** Trafikverket
+
+
+### 🚲 Bicycle traffic flow
+
+Shows bicycle traffic at measurement locations in Gothenburg.
+
+Larger circles represent locations with higher bicycle traffic.
+
+**Source:** Göteborgs Stad
+
+
+### ⚠️ Important
+
+Traffic flow does **not** mean that a location is dangerous.
+
+The next step of the project is to combine traffic flow with
+near-miss reports to identify potential traffic-safety hotspots.
+"""
+)
