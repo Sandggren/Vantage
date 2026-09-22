@@ -1,0 +1,364 @@
+import streamlit as st
+import folium
+from streamlit_folium import st_folium
+import requests
+
+
+# =========================================================
+# PAGE
+# =========================================================
+
+st.set_page_config(
+    page_title="Gothenburg Traffic Safety",
+    page_icon="🚦",
+    layout="wide"
+)
+
+st.title("Gothenburg Traffic Safety 🚦")
+
+st.write(
+    "Explore vehicle and bicycle traffic flows in Gothenburg."
+)
+
+
+# =========================================================
+# LOAD VEHICLE DATA
+# Cache prevents downloading the same data every time
+# Streamlit reruns the app
+# =========================================================
+
+@st.cache_data(ttl=3600)
+def load_vehicle_data():
+
+    url = (
+        "https://vektor.trafikverket.se/gis/rest/services/"
+        "VTF_MC/Vagtrafikfloden_Mc_gradient/MapServer/9/query"
+    )
+
+    params = {
+        "where": "AADT_TOT > 0",
+
+        # Only request the fields we actually use
+        "outFields": "AADT_TOT,VAEG_NUM,AAR",
+
+        # Gothenburg area
+        "geometry": "11.85,57.63,12.08,57.78",
+
+        "geometryType": "esriGeometryEnvelope",
+        "inSR": "4326",
+        "outSR": "4326",
+        "spatialRel": "esriSpatialRelIntersects",
+
+        "returnGeometry": "true",
+
+        # Simplifies the road geometry slightly.
+        # This reduces the amount of data Folium has to draw.
+        "maxAllowableOffset": "0.0001",
+
+        "f": "geojson"
+    }
+
+    response = requests.get(
+        url,
+        params=params,
+        timeout=15
+    )
+
+    response.raise_for_status()
+
+    return response.json()
+
+
+# =========================================================
+# CREATE MAP
+# =========================================================
+
+gothenburg_map = folium.Map(
+    location=[57.7089, 11.9746],
+    zoom_start=12,
+
+    # Prefer canvas rendering for lots of map objects
+    prefer_canvas=True,
+
+    control_scale=True
+)
+
+
+# =========================================================
+# 🚗 VEHICLE TRAFFIC FLOW
+# Source: Trafikverket
+# =========================================================
+
+vehicle_layer = folium.FeatureGroup(
+    name="🚗 Vehicle traffic flow",
+    show=True
+)
+
+try:
+
+    traffic_data = load_vehicle_data()
+
+    # -----------------------------------------------------
+    # Style roads according to traffic volume
+    # -----------------------------------------------------
+
+    def vehicle_style(feature):
+
+        traffic = feature["properties"].get("AADT_TOT")
+
+        try:
+            traffic = float(traffic)
+        except (TypeError, ValueError):
+            traffic = 0
+
+        if traffic >= 30000:
+            weight = 6
+
+        elif traffic >= 15000:
+            weight = 5
+
+        elif traffic >= 5000:
+            weight = 4
+
+        else:
+            weight = 3
+
+        return {
+            "color": "#e63946",
+            "weight": weight,
+            "opacity": 0.65
+        }
+
+
+    folium.GeoJson(
+
+        traffic_data,
+
+        name="Vehicle traffic",
+
+        style_function=vehicle_style,
+
+        tooltip=folium.GeoJsonTooltip(
+
+            fields=[
+                "AADT_TOT",
+                "VAEG_NUM",
+                "AAR"
+            ],
+
+            aliases=[
+                "Average vehicles/day:",
+                "Road:",
+                "Measurement year:"
+            ],
+
+            sticky=False
+        )
+
+    ).add_to(vehicle_layer)
+
+
+    vehicle_layer.add_to(gothenburg_map)
+
+
+except Exception as e:
+
+    st.warning(
+        "Vehicle traffic data could not be loaded."
+    )
+
+    st.write(e)
+
+
+# =========================================================
+# 🚲 BICYCLE TRAFFIC FLOW
+# Source: Göteborgs Stad
+# =========================================================
+
+bike_data = [
+
+    {
+        "name": "Ullevigatan",
+        "lat": 57.7065,
+        "lon": 11.9860,
+        "flow": 3200,
+        "year": 2022
+    },
+
+    {
+        "name": "Redbergsvägen",
+        "lat": 57.7160,
+        "lon": 12.0040,
+        "flow": 2800,
+        "year": 2022
+    },
+
+    {
+        "name": "Nya Allén",
+        "lat": 57.7035,
+        "lon": 11.9660,
+        "flow": 2400,
+        "year": 2022
+    },
+
+    {
+        "name": "Delsjövägen",
+        "lat": 57.6950,
+        "lon": 12.0140,
+        "flow": 2400,
+        "year": 2022
+    }
+
+]
+
+
+bike_layer = folium.FeatureGroup(
+    name="🚲 Bicycle traffic flow",
+    show=True
+)
+
+
+for station in bike_data:
+
+    # Bigger circle = higher bicycle flow
+    radius = max(
+        6,
+        min(14, station["flow"] / 300)
+    )
+
+    folium.CircleMarker(
+
+        location=[
+            station["lat"],
+            station["lon"]
+        ],
+
+        radius=radius,
+
+        color="#2a9d8f",
+
+        weight=2,
+
+        fill=True,
+
+        fill_color="#2a9d8f",
+
+        fill_opacity=0.75,
+
+        tooltip=(
+            f"{station['name']} – "
+            f"{station['flow']:,} bicycles/weekday"
+        ),
+
+        popup=folium.Popup(
+
+            (
+                f"<b>🚲 {station['name']}</b>"
+                f"<br><br>"
+                f"<b>Bicycle traffic flow:</b> "
+                f"{station['flow']:,} bicycles/weekday"
+                f"<br>"
+                f"<b>Measurement year:</b> "
+                f"{station['year']}"
+                f"<br><br>"
+                f"Source: Göteborgs Stad"
+            ),
+
+            max_width=300
+        )
+
+    ).add_to(bike_layer)
+
+
+bike_layer.add_to(gothenburg_map)
+
+
+# =========================================================
+# MAP MENU
+# =========================================================
+
+folium.LayerControl(
+    collapsed=False,
+    position="topright"
+).add_to(gothenburg_map)
+
+
+# =========================================================
+# SHOW MAP
+# =========================================================
+
+st.subheader("Traffic Flow Map")
+
+st.write(
+    "Use the menu in the top-right corner to show or hide "
+    "vehicle and bicycle traffic."
+)
+
+st_folium(
+    gothenburg_map,
+
+    width=900,
+    height=600,
+
+    # Streamlit only listens for clicks.
+    # It does not need to rerun the app every time
+    # the user moves or zooms the map.
+    returned_objects=["last_object_clicked"],
+
+    key="traffic_map"
+)
+
+
+# =========================================================
+# INFORMATION
+# =========================================================
+
+st.subheader("What does the map show?")
+
+
+st.markdown(
+    """
+### 🚗 Vehicle traffic flow
+
+Shows the average number of motor vehicles using different
+road sections in Gothenburg.
+
+**Thicker road lines = higher vehicle traffic.**
+
+The traffic data comes from **Trafikverket**.
+
+Traffic volume does **not** mean accident risk.
+
+
+### 🚲 Bicycle traffic flow
+
+Shows bicycle traffic at selected measurement locations
+in Gothenburg.
+
+**Larger circles = higher bicycle traffic.**
+
+The bicycle measurements come from **Göteborgs Stad**.
+
+
+### ⚠️ Near-miss reporting
+
+The next part of the prototype will add user-reported
+near-miss incidents.
+
+The final concept combines:
+
+**🚗 Vehicle traffic flow**
+
++
+
+**🚲 Bicycle traffic flow**
+
++
+
+**⚠️ Near-miss reports**
+
+↓
+
+### Potential traffic-safety hotspots
+"""
+)
