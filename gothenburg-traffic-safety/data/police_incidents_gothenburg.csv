@@ -1,0 +1,20 @@
+id,datetime,street,lat,lon,severity,road_users,summary,source
+651648,2026-09-04 9:30:34 +02:00,E45,57.7072326,11.9670171,minor,,"Polis, ambulans och räddningstjänst larmas till en trafikolycka på E45, i höjd med Agnesberg.",POLICE_API
+651424,2026-09-02 14:32:22 +02:00,Hisingsleden,57.7225116,11.8661669,minor,Car,Lastbil i singelolycka på Hisingsleden.,POLICE_API
+650699,2026-08-26 21:16:16 +02:00,Hisingsbron,57.7148956,11.9678707,minor,,Larm inkommer via SOS om en trafikolycka på Hisingsbron. Det ska röra sig om en sammanstötning mellan en perso,POLICE_API
+650334,2026-08-23 13:40:28 +02:00,Polhemsplatsen,57.7083817,11.9775033,minor,,Flera bilar involverade i olycka vid Polhemsplatsen.,POLICE_API
+649617,2026-08-16 13:55:59 +02:00,Agnesbergsmotet,57.7875996,12.0234669,minor,Car,Larm inkommer via SOS om en trafikolycka på E45 vid Agnesbergsmotet. Det ska vara två personbilar som sammanst,POLICE_API
+647985,2026-07-27 15:30:42 +02:00,Munkebäcksmotet,57.7241823,12.0249514,minor,Car|Bus,En buss och en personbil är involverade i en olycka på E20 vid Munkebäcksmotet.,POLICE_API
+647201,2026-07-17 10:58:41 +02:00,Övre Storåsvägen,57.7946142,12.04699,minor,,Två fordon är involverade i en olycka vid Övre Storåsvägen.,POLICE_API
+647048,2026-07-15 11:43:51 +02:00,E6,57.7072326,11.9670171,minor,Car,En lastbil och en personbil har varit involverade i en olycka vid Gnistängstunneln på E6.,POLICE_API
+646955,2026-07-14 12:50:20 +02:00,Stora Badhusgatan,57.7047837,11.9576456,minor,Car|Tram,En personbil och en spårvagn har kolliderat på Stora Badhusgatan.,POLICE_API
+644126,2026-06-26 16:29:11 +02:00,E6,57.7072326,11.9670171,minor,Pedestrian,"Trafikolycka E6 Trafikplats Kallebäcksmotet, Norrgående",POLICE_API
+643953,2026-06-25 10:16:09 +02:00,Engelbrektsgatan,57.6989996,11.9778089,minor,,Larm inkommer via SOS om en trafikolycka på Engelbrektsgatan.,POLICE_API
+643730,2026-06-23 15:26:17 +02:00,Hästeviksgatan,57.6797316,11.8745406,minor,,Larm inkommer via SOS om en trafikolycka på Hästeviksgatan. Det ska röra sig om en sammanstötning mellan en pe,POLICE_API
+639982,2026-05-31 14:37:07 +02:00,Svanebäcksgatan,57.6860676,11.9224456,minor,,Vi får larm om en påkörd person vid Svanebäcksgatan.,POLICE_API
+636474,2026-05-27 10:01:25 +02:00,Oscarsleden,57.6974429,11.9261798,minor,,Två fordon kolliderar på Oscarsleden i riktning mot Järntorget.,POLICE_API
+636278,2026-05-25 11:42:49 +02:00,Hovåsvägen,57.6163176,11.934076,minor,,Larm inkommer om en påkörd person på Hovåsvägen.,POLICE_API
+635924,2026-05-21 18:19:46 +02:00,Björlandavägen,57.7511927,11.8706089,minor,Bus,Larm inkommer via SOS om en trafikolycka på Björlandavägen i Tolered. Inblandade fordon ska vara en buss och t,POLICE_API
+634246,2026-05-07 16:05:48 +02:00,Gamlestadsvägen,57.725708,12.0078313,minor,Car|Cyclist,En cyklist och en bilist är involverade i en olycka på Gamlestadsvägen.,POLICE_API
+633588,2026-04-30 15:40:31 +02:00,Linnégatan,57.6917851,11.9524982,minor,Bus,En person och en buss är involverade i en olycka på Linnégatan.,POLICE_API
+631183,2026-04-17 16:13:05 +02:00,Hisingsleden,57.7225116,11.8661669,minor,Car,Olycka mellan personbil och lastbil på Hisingsleden.,POLICE_API
