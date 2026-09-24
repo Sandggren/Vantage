@@ -1,0 +1,3 @@
+id,timestamp,type,road_users,severity,description,location_text,lat,lon,location_source
+910ee427,2026-09-24T09:09:58,Hazard,Cyclist|Pedestrian,Moderate,near miss,"Medicinaregatan 7B, Gothenburg, VG, Sweden",57.68576257118929,11.96010393783309,gps
+ccf414cd,2026-09-24T09:41:30,Collision,Car,High,Person died in a car crash,"Mölndals bro, Gothenburg, VG, Sweden",57.65605554627673,12.018013000488283,map
